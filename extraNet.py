@@ -32,9 +32,9 @@ class Derain (nn.Module):
         mu_b, logvar_b = self.derainet(input)
         return mu_b, logvar_b
 
-class EDNet(nn.Module):  # RNet + G
+class EGNet(nn.Module):  # ENet + Gererator
     def __init__(self,nc,nz,nef):
-        super(EDNet,self).__init__()
+        super(EGNet,self).__init__()
         self.nc = nc
         self.nz = nz
         self.nef= nef
@@ -51,7 +51,7 @@ class EDNet(nn.Module):  # RNet + G
         R = self.decoder(z)
         return  R, mu,logvar, z
 
-class Encoder(nn.Module):  # RNet
+class Encoder(nn.Module):  # ENet
     def __init__(self, nc, nef, nz):
         super(Encoder, self).__init__()
         self.main = nn.Sequential(

@@ -13,7 +13,7 @@ import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.autograd import Variable
 import torchvision.utils as vutils
-from extraNet import Derain, EDNet   # Derain: BNet,  EDNet: RNet+G
+from extraNet import Derain, EGNet   # Derain: BNet,  EGNet: RNet+G
 from discriminator import Discriminator  # Discriminator: D
 from torch.utils.data import DataLoader
 from derainDataset import TrainDataset
@@ -34,7 +34,7 @@ parser.add_argument('--patchSize', type=int, default=64, help='the height / widt
 parser.add_argument('--nc', type=int, default=3, help='size of the RGB image')
 parser.add_argument('--nz', type=int, default=128, help='size of the latent z vector')
 parser.add_argument('--stage', type=int, default=6, help='the stage number of PReNet')
-parser.add_argument('--nef', type=int, default=32, help='channel setting for EDNet')
+parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
 parser.add_argument('--niter', type=int, default=100, help='the total number of training epochs')
 parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
@@ -203,7 +203,7 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
 def main():
     # move the model to GPU
     netDerain = Derain(opt.stage).cuda()                     # PReNet
-    netED = EDNet(opt.nc, opt.nz, opt.nef).cuda()
+    netED = EGNet(opt.nc, opt.nz, opt.nef).cuda()
     netD = Discriminator(batch_size=opt.batchSize, image_size=opt.patchSize, conv_dim=opt.ndf).cuda()
     # optimizer
     optimizerDerain = optim.Adam(netDerain.parameters(), lr=opt.lrDerain)
