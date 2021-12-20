@@ -42,11 +42,11 @@ parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coeffic
 parser.add_argument("--milestone", type=int, default=[400,600,650,675,690,700], help="When to decay learning rate")
 parser.add_argument('--lrD', type=float, default=0.001, help='learning rate for Disciminator')
 parser.add_argument('--lrDerain', type=float, default=0.001, help='learning rate for BNet')
-parser.add_argument('--lrED', type=float, default=0.001, help='learning rate for RNet and Generator')
+parser.add_argument('--lrEG', type=float, default=0.001, help='learning rate for RNet and Generator')
 
 # parser.add_argument('--lrD', type=float, default=0.0004, help='learning rate for Disciminator')
 # parser.add_argument('--lrDerain', type=float, default=0.0002, help='learning rate for BNet')
-# parser.add_argument('--lrED', type=float, default=0.0001, help='learning rate for RNet and Generator')
+# parser.add_argument('--lrEG', type=float, default=0.0001, help='learning rate for RNet and Generator')
 parser.add_argument('--n_dis', type=int, default=5, help='discriminator critic iters')
 parser.add_argument('--eps2', type=float, default= 1e-6, help='prior variance for variable b')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
@@ -84,7 +84,7 @@ def weights_init(m):
 
 log_max = log(1e4)
 log_min = log(1e-8)
-def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerDerain, optimizerED, lr_schedulerED, optimizerD, lr_schedulerD):
+def train_model(netDerain, netEG, netD, datasets, optimizerDerain, lr_schedulerDerain, optimizerEG, lr_schedulerEG, optimizerD, lr_schedulerD):
     data_loader= DataLoader(datasets, batch_size=opt.batchSize,shuffle=True, num_workers=int(opt.workers), pin_memory=True)
     num_data = len(datasets)
     num_iter_epoch = ceil(num_data / opt.batchSize)
@@ -95,10 +95,10 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
         tic = time.time()
         # train stage
         lrDerain = optimizerDerain.param_groups[0]['lr']
-        lrED = optimizerED.param_groups[0]['lr']
+        lrEG = optimizerEG.param_groups[0]['lr']
         lrD = optimizerD.param_groups[0]['lr']
         print('lr_Derain %f'  % lrDerain)
-        print('lr_ED %f' % lrED)
+        print('lr_EG %f' % lrEG)
         print('lrD %f' % lrD)
         for ii, data in enumerate(data_loader):
             input, gt = [x.cuda() for x in data]
@@ -112,7 +112,7 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
             d_loss_real = - torch.mean(d_out_real)
             # train with fake
             mu_b, logvar_b = netDerain(input)
-            rain_make, mu_z, logvar_z,_= netED(input)
+            rain_make, mu_z, logvar_z,_= netEG(input)
             input_fake = mu_b + rain_make
             d_out_fake, df1, df2 = netD(input_fake.detach())
             d_loss_fake = d_out_fake.mean()
@@ -147,13 +147,13 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
             if step % opt.n_dis == 0:
                 netDerain.train()
                 netDerain.zero_grad()
-                netED.train()
-                netED.zero_grad()
+                netEG.train()
+                netEG.zero_grad()
                 g_out_fake, _, _ = netD(input_fake)
                 g_loss_fake = - g_out_fake.mean()
                 errED = g_loss_fake + kl_gauss_z + kl_gauss_b
                 errED.backward()
-                optimizerED.step()
+                optimizerEG.step()
                 optimizerDerain.step()
             recon_loss = F.mse_loss(mu_b, gt)
             mse_iter = recon_loss.item()
@@ -185,13 +185,13 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
         print('Epoch:{:>2d}, Derain_Loss={:+.2e}'.format(epoch+1, mse_per_epoch))
         # adjust the learning rate
         lr_schedulerDerain.step()
-        lr_schedulerED.step()
+        lr_schedulerEG.step()
         lr_schedulerD.step()
         # save model
         save_path_model = os.path.join(opt.model_dir, 'DerainNet_state_'+str(epoch+1)+'.pt')
         torch.save(netDerain.state_dict(), save_path_model)
         save_path_model = os.path.join(opt.model_dir, 'ED_state_'+ str(epoch + 1) +'.pt')
-        torch.save(netED.state_dict(), save_path_model)
+        torch.save(netEG.state_dict(), save_path_model)
         save_path_model = os.path.join(opt.model_dir, 'D_state_' + str(epoch + 1) + '.pt')
         torch.save(netD.state_dict(), save_path_model)
         toc = time.time()
@@ -203,15 +203,15 @@ def train_model(netDerain, netED, netD, datasets, optimizerDerain, lr_schedulerD
 def main():
     # move the model to GPU
     netDerain = Derain(opt.stage).cuda()                     # PReNet
-    netED = EGNet(opt.nc, opt.nz, opt.nef).cuda()
+    netEG = EGNet(opt.nc, opt.nz, opt.nef).cuda()
     netD = Discriminator(batch_size=opt.batchSize, image_size=opt.patchSize, conv_dim=opt.ndf).cuda()
     # optimizer
     optimizerDerain = optim.Adam(netDerain.parameters(), lr=opt.lrDerain)
-    optimizerED = optim.Adam(netED.parameters(), lr=opt.lrED)
+    optimizerEG = optim.Adam(netEG.parameters(), lr=opt.lrEG)
     optimizerD = optim.Adam(netD.parameters(), lr=opt.lrD)
     # scheduler
     schedulerDerain = optim.lr_scheduler.MultiStepLR(optimizerDerain, opt.milestone, gamma=0.5)
-    schedulerED = optim.lr_scheduler.MultiStepLR(optimizerED, opt.milestone, gamma=0.5)
+    schedulerED = optim.lr_scheduler.MultiStepLR(optimizerEG, opt.milestone, gamma=0.5)
     schedulerD = optim.lr_scheduler.MultiStepLR(optimizerD, opt.milestone, gamma=0.5)
     # continue to train from opt.resume
     for _ in range(opt.resume):
@@ -221,15 +221,15 @@ def main():
 
     if opt.resume:  # from opt.resume continue to train, opt.resume=0 from scratch
         netDerain.load_state_dict(torch.load(os.path.join(opt.model_dir, 'DerainNet_state_'+ str(opt.resume)+'.pt')))
-        netED.load_state_dict(torch.load(os.path.join(opt.model_dir, 'ED_state_' + str(opt.resume) + '.pt')))
+        netEG.load_state_dict(torch.load(os.path.join(opt.model_dir, 'ED_state_' + str(opt.resume) + '.pt')))
         netD.load_state_dict(torch.load(os.path.join(opt.model_dir, 'D_state_' + str(opt.resume) + '.pt')))
     else:
         netDerain.apply(weights_init)
-        netED.apply(weights_init)
+        netEG.apply(weights_init)
     # training data
     train_dataset = TrainDataset(opt.data_path, opt.gt_path, opt.patchSize, opt.batchSize*3000)
     # train model
-    train_model(netDerain, netED, netD, train_dataset, optimizerDerain, schedulerDerain, optimizerED, schedulerED, optimizerD, schedulerD)
+    train_model(netDerain, netEG, netD, train_dataset, optimizerDerain, schedulerDerain, optimizerEG, schedulerED, optimizerD, schedulerD)
 
 if __name__ == '__main__':
     main()
