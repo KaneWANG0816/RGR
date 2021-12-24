@@ -40,7 +40,7 @@ parser.add_argument('--stage', type=int, default=6, help='the stage number of PR
 parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
 parser.add_argument('--niter', type=int, default=300, help='the total number of training epochs')
-parser.add_argument('--resume', type=int, default=150, help='continue to train from resume')
+parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
 parser.add_argument("--milestone", type=int, default=[400, 600, 650, 675, 690, 700], help="When to decay learning rate")
 # parser.add_argument('--lrD', type=float, default=0.001, help='learning rate for Disciminator')
@@ -54,8 +54,10 @@ parser.add_argument('--n_dis', type=int, default=5, help='discriminator critic i
 parser.add_argument('--eps2', type=float, default=1e-6, help='prior variance for variable b')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--log_dir', default='./syn100llogs/', help='tensorboard logs')
-parser.add_argument('--model_dir', default='./syn100lmodels/', help='saving model')
+# parser.add_argument('--log_dir', default='./syn100llogs/', help='tensorboard logs')
+# parser.add_argument('--model_dir', default='./syn100lmodels/', help='saving model')
+parser.add_argument('--log_dir', default='./syn100llogs_new/', help='tensorboard logs')
+parser.add_argument('--model_dir', default='./syn100lmodels_new/', help='saving model')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -158,7 +160,8 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
                 netEG.zero_grad()
                 g_out_fake, _, _ = netD(input_fake)
                 g_loss_fake = - g_out_fake.mean()
-                errEG = g_loss_fake + kl_gauss_z
+                # errEG = g_loss_fake + kl_gauss_z
+                errEG = g_loss_fake
                 errEG.backward()
                 optimizerEG.step()
             recon_loss = F.mse_loss(input, input_fake)
