@@ -16,7 +16,7 @@ parser.add_argument('--nz', type=int, default=128, help='size of the latent z ve
 parser.add_argument('--nef', type=int, default=32)
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--netEG', default='./syn100lmodels/EG_state_190.pt', help="path to netEG for z--rain display")
+parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to netEG for z--rain display")
 parser.add_argument('--save_fake', default='./disentanglement_results/rain100L/', help='folder to fake rain streaks')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
