@@ -7,6 +7,9 @@
       <excludeFolder url="file://$MODULE_DIR$/rain100L" />
       <excludeFolder url="file://$MODULE_DIR$/syn100llogs" />
       <excludeFolder url="file://$MODULE_DIR$/syn100lmodels" />
+      <excludeFolder url="file://$MODULE_DIR$/disentanglement_results" />
+      <excludeFolder url="file://$MODULE_DIR$/interpolation_results" />
+      <excludeFolder url="file://$MODULE_DIR$/rainy_results" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (RGR)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
