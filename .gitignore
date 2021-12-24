@@ -1,9 +1,3 @@
-/data/
-/rain100L/
-/syn100llogs/
-/syn100lmodels/
-disentanglement_results/**
-interpolation_results/**
-rainy_results/**
+
 
 
