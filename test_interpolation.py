@@ -34,7 +34,7 @@ parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 #                     help='folder to generated rainy images')
 # parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
 #                     help='folder to generated rain layer')
-parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_220.pt', help="path to trained generator")
+parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_300.pt', help="path to trained generator")
 parser.add_argument('--save_patch', default='./interpolation_results_new/test_data/rain100L/crop_patch/',
                     help='folder to patchs by randonmly cropping the test-data')
 parser.add_argument('--save_inputfake', default='./interpolation_results_new/generated_data/rain100L/input_fake',
@@ -128,7 +128,7 @@ def main():
                     torch.cuda.synchronize()
                 _, _, _, z = netEG(O)  # z: 1*nz
                 z_list.append(z)
-    for lambda_weight in (np.linspace(0, 1, 21)):
+    for lambda_weight in (np.linspace(-1, 1, 21)):
         z_mix = (lambda_weight * z_list[0] + (1 - lambda_weight) * z_list[1]) / (
             np.sqrt(lambda_weight ** 2 + (1 - lambda_weight) ** 2))
         z_list.append(z_mix)
