@@ -16,8 +16,10 @@ parser.add_argument('--nz', type=int, default=128, help='size of the latent z ve
 parser.add_argument('--nef', type=int, default=32)
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to netEG for z--rain display")
-parser.add_argument('--save_fake', default='./disentanglement_results/rain100L/', help='folder to fake rain streaks')
+# parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to netEG for z--rain display")
+# parser.add_argument('--save_fake', default='./disentanglement_results/rain100L/', help='folder to fake rain streaks')
+parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_220.pt', help="path to netEG for z--rain display")
+parser.add_argument('--save_fake', default='./disentanglement_results_new/rain100L/', help='folder to fake rain streaks')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -38,7 +40,7 @@ def main():
     print('Loading model ...\n')
     netEG = EGNet(opt.nc,opt.nz, opt.nef).cuda()
     netEG.load_state_dict(torch.load(opt.netEG))
-    interpolation = torch.arange(-3, 3 + 0.1, 2 / 5)
+    interpolation = torch.arange(-100, 100, 10)
     n = len(interpolation)
     img_size = 64
     figure_big = np.zeros((img_size * opt.nz, img_size * n, 3))

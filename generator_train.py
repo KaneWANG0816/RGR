@@ -39,7 +39,7 @@ parser.add_argument('--nz', type=int, default=128, help='size of the latent z ve
 parser.add_argument('--stage', type=int, default=6, help='the stage number of PReNet')
 parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
-parser.add_argument('--niter', type=int, default=300, help='the total number of training epochs')
+parser.add_argument('--niter', type=int, default=300, help='the total number of training e  pochs')
 parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
 parser.add_argument("--milestone", type=int, default=[400, 600, 650, 675, 690, 700], help="When to decay learning rate")

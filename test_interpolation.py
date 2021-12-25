@@ -27,12 +27,19 @@ parser.add_argument('--stage', type=int, default=6, help='the stage number of PR
 parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to trained generator")
-parser.add_argument('--save_patch', default='./interpolation_results/test_data/rain100L/crop_patch/',
+# parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to trained generator")
+# parser.add_argument('--save_patch', default='./interpolation_results/test_data/rain100L/crop_patch/',
+#                     help='folder to patchs by randonmly cropping the test-data')
+# parser.add_argument('--save_inputfake', default='./interpolation_results/generated_data/rain100L/input_fake',
+#                     help='folder to generated rainy images')
+# parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
+#                     help='folder to generated rain layer')
+parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_220.pt', help="path to trained generator")
+parser.add_argument('--save_patch', default='./interpolation_results_new/test_data/rain100L/crop_patch/',
                     help='folder to patchs by randonmly cropping the test-data')
-parser.add_argument('--save_inputfake', default='./interpolation_results/generated_data/rain100L/input_fake',
+parser.add_argument('--save_inputfake', default='./interpolation_results_new/generated_data/rain100L/input_fake',
                     help='folder to generated rainy images')
-parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
+parser.add_argument('--save_rainfake', default='./interpolation_results_new/generated_data/rain100L/rain_fake',
                     help='folder to generated rain layer')
 opt = parser.parse_args()
 if opt.use_gpu:
