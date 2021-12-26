@@ -1,6 +1,6 @@
 /.idea/
 /data/
-/rain100L/
+# /rain100L/
 /syn100llogs/
 /syn100lmodels/
 /disentanglement_results/
