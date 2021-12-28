@@ -7,16 +7,16 @@ import argparse
 
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
-from extraNet import EGNet
+from extraNet import GNet
 import time
 import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./rain100L/test/small/norain", help='path to testing images')
-parser.add_argument('--stage', type=int, default=3, help='the stage number of EGNet')
+parser.add_argument('--stage', type=int, default=3, help='the stage number of GNet')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--netEG', default='./syn100lmodels/EG_state_188.pt', help="path to trained EGNet")
+parser.add_argument('--netG', default='./syn100lmodels/G_state_188.pt', help="path to trained GNet")
 parser.add_argument('--save_path', default='./rainy_results/rain100L/', help='folder to rainy images')
 opt = parser.parse_args()
 
@@ -42,9 +42,9 @@ def normalize(data):
 def main():
     # Build model
     print('Loading model ...\n')
-    netEG = EGNet(opt.stage, 128, 32).cuda()
-    netEG.load_state_dict(torch.load(opt.netEG))
-    netEG.eval()
+    netG = GNet(opt.stage, 128, 32).cuda()
+    netG.load_state_dict(torch.load(opt.netG))
+    netG.eval()
     time_test = 0
     count = 0
     for img_name in os.listdir(opt.data_path):
@@ -63,7 +63,7 @@ def main():
                     torch.cuda.synchronize()
                 start_time = time.time()
 
-                rain_make, mu_z, logvar_z, _ = netEG(y)
+                rain_make, mu_z, logvar_z, _ = netG(y)
                 # rain_make += y
                 out = torch.clamp(rain_make, 0., 1.)
 

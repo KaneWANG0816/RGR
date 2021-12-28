@@ -32,9 +32,9 @@ class Derain (nn.Module):
         mu_b, logvar_b = self.derainet(input)
         return mu_b, logvar_b
 
-class EGNet(nn.Module):  # ENet + Gererator
+class GNet(nn.Module):  # ENet + Gererator
     def __init__(self,nc,nz,nef):
-        super(EGNet,self).__init__()
+        super(GNet,self).__init__()
         self.nc = nc
         self.nz = nz
         self.nef= nef

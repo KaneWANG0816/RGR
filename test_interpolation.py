@@ -34,12 +34,12 @@ parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 #                     help='folder to generated rainy images')
 # parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
 #                     help='folder to generated rain layer')
-parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_300.pt', help="path to trained generator")
-parser.add_argument('--save_patch', default='./interpolation_results_new/test_data/rain100L/crop_patch/',
+parser.add_argument('--netEG', default='./syn100lmodels_0004-0001/EG_state_150.pt', help="path to trained generator")
+parser.add_argument('--save_patch', default='./interpolation_results_0004-0001/test_data/rain100L/crop_patch/',
                     help='folder to patchs by randonmly cropping the test-data')
-parser.add_argument('--save_inputfake', default='./interpolation_results_new/generated_data/rain100L/input_fake',
+parser.add_argument('--save_inputfake', default='./interpolation_results_0004-0001/generated_data/rain100L/input_fake',
                     help='folder to generated rainy images')
-parser.add_argument('--save_rainfake', default='./interpolation_results_new/generated_data/rain100L/rain_fake',
+parser.add_argument('--save_rainfake', default='./interpolation_results_0004-0001/generated_data/rain100L/rain_fake',
                     help='folder to generated rain layer')
 opt = parser.parse_args()
 if opt.use_gpu:
@@ -128,7 +128,10 @@ def main():
                     torch.cuda.synchronize()
                 _, _, _, z = netEG(O)  # z: 1*nz
                 z_list.append(z)
-    for lambda_weight in (np.linspace(-1, 1, 21)):
+                # Show Z distribution
+                # plt.hist(z.cpu().squeeze().numpy(), density=True, bins=25)
+                # plt.show()
+    for lambda_weight in (np.linspace(-1, 1, 20)):
         z_mix = (lambda_weight * z_list[0] + (1 - lambda_weight) * z_list[1]) / (
             np.sqrt(lambda_weight ** 2 + (1 - lambda_weight) ** 2))
         z_list.append(z_mix)
@@ -151,8 +154,8 @@ def main():
 
         # save generated rainy layer and rainy images
         plt.imsave(opt.save_rainfake + '/' + str(lambda_weight) + '_' + 'rainfake.png', rain_fake / 255)
-        plt.imsave(opt.save_inputfake + '/' + str(lambda_weight) + '_' + 'O1fake.png', O1_fake / 255)
-        plt.imsave(opt.save_inputfake + '/' + str(lambda_weight) + '_' + 'O2fake.png', O2_fake / 255)
+        plt.imsave(opt.save_inputfake + '/' + 'O1fake_' + str(lambda_weight) + '.png', O1_fake / 255)
+        plt.imsave(opt.save_inputfake + '/' + 'O2fake_' + str(lambda_weight) + '.png', O2_fake / 255)
 
 
 if __name__ == "__main__":

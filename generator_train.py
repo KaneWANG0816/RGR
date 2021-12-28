@@ -16,7 +16,7 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
 import torchvision.utils as vutils
-from extraNet import Derain, EGNet  # Derain: BNet,  EGNet: RNet+G
+from extraNet import GNet  # GNet: RNet+G
 from discriminator import Discriminator  # Discriminator: D
 from torch.utils.data import DataLoader
 from derainDataset import TrainDataset
@@ -36,24 +36,23 @@ parser.add_argument('--batchSize', type=int, default=20, help='batch size')
 parser.add_argument('--patchSize', type=int, default=64, help='the height / width of the input image to network')
 parser.add_argument('--nc', type=int, default=3, help='size of the RGB image')
 parser.add_argument('--nz', type=int, default=128, help='size of the latent z vector')
-parser.add_argument('--stage', type=int, default=6, help='the stage number of PReNet')
-parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
+parser.add_argument('--nef', type=int, default=32, help='channel setting for GNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
 
-parser.add_argument('--niter', type=int, default=100, help='the total number of training epochs')
+parser.add_argument('--niter', type=int, default=500, help='the total number of training epochs')
 parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
-parser.add_argument("--milestone", type=int, default=[400, 600, 650, 675, 690, 700], help="When to decay learning rate")
+parser.add_argument("--milestone", type=int, default=[300, 400, 450, 475, 490, 500], help="When to decay learning rate")
 
-parser.add_argument('--lrD', type=float, default=0.0002, help='learning rate for Disciminator')
-parser.add_argument('--lrEG', type=float, default=0.0002, help='learning rate for RNet and Generator')
+parser.add_argument('--lrD', type=float, default=0.0004, help='learning rate for Disciminator')
+parser.add_argument('--lrG', type=float, default=0.0001, help='learning rate for RNet and Generator')
 parser.add_argument('--n_dis', type=int, default=5, help='discriminator critic iters')
 parser.add_argument('--eps2', type=float, default=1e-6, help='prior variance for variable b')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 
-parser.add_argument('--log_dir', default='./syn100llogs_0002/', help='tensorboard logs')
-parser.add_argument('--model_dir', default='./syn100lmodels_0002/', help='saving model')
+parser.add_argument('--log_dir', default='./syn100llogs_0004-0001/', help='tensorboard logs')
+parser.add_argument('--model_dir', default='./syn100lmodels_0004-0001/', help='saving model')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -90,7 +89,7 @@ log_max = log(1e4)
 log_min = log(1e-8)
 
 
-def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, lr_schedulerD):
+def train_model(netG, netD, datasets, optimizerG, lr_schedulerG, optimizerD, lr_schedulerD):
     data_loader = DataLoader(datasets, batch_size=opt.batchSize, shuffle=True, num_workers=int(opt.workers),
                              pin_memory=True)
     num_data = len(datasets)
@@ -98,12 +97,11 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
     writer = SummaryWriter(opt.log_dir)
     step = 0
     for epoch in range(opt.resume, opt.niter):
-        mse_per_epoch = 0
         tic = time.time()
         # train stage
-        lrEG = optimizerEG.param_groups[0]['lr']
+        lrG = optimizerG.param_groups[0]['lr']
         lrD = optimizerD.param_groups[0]['lr']
-        print('lr_EG %f' % lrEG)
+        print('lr_G %f' % lrG)
         print('lrD %f' % lrD)
         for ii, data in enumerate(data_loader):
             input, gt = [x.cuda() for x in data]
@@ -117,15 +115,12 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
             d_loss_real = - torch.mean(d_out_real)
             # train with fake
 
-            rain_make, mu_z, logvar_z, _ = netEG(input)
+            rain_make, mu_z, logvar_z, _ = netG(input)
 
             input_fake = gt + rain_make
             d_out_fake, df1, df2 = netD(input_fake.detach())
             d_loss_fake = d_out_fake.mean()
-            # KL divergence for Gauss distribution
-            logvar_z.clamp_(min=log_min, max=log_max)  # clip
-            var_z = torch.exp(logvar_z)
-            kl_gauss_z = 0.5 * torch.mean(mu_z ** 2 + (var_z - 1 - logvar_z))
+           
             # Compute gradient penalty
             alpha = torch.rand(input.size(0), 1, 1, 1).cuda().expand_as(input)
             interpolated = Variable(alpha * input.data + (1 - alpha) * input_fake.data, requires_grad=True)
@@ -144,7 +139,7 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
             errD.backward()
             optimizerD.step()
             ############################
-            # (2) Update Derain network and EG network
+            # (2) Update Derain network and G network
             ###########################
             if step % opt.n_dis == 0:
                 # arr = rain_make.cpu().detach().numpy()
@@ -152,47 +147,43 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
                 # arr_ = arr_.swapaxes(0, 2)
                 # cv2.imshow('image', arr_)
                 # cv2.waitKey(1000)
-                netEG.train()
-                netEG.zero_grad()
+                netG.train()
+                netG.zero_grad()
                 g_out_fake, _, _ = netD(input_fake)
                 g_loss_fake = - g_out_fake.mean()
-                # errEG = g_loss_fake + kl_gauss_z
-                errEG = g_loss_fake
-                errEG.backward()
-                optimizerEG.step()
-            recon_loss = F.mse_loss(input, input_fake)
-            mse_iter = recon_loss.item()
-            mse_per_epoch += mse_iter
+                # errG = g_loss_fake + kl_gauss_z
+                errG = g_loss_fake
+                errG.backward()
+                optimizerG.step()
             if ii % 200 == 0:
-                template = '[Epoch:{:>2d}/{:<2d}] {:0>5d}/{:0>5d}, gfake={:5.2e}  errD={:5.2e} errG={: 5.2e} Loss={:5.2e}'
-                print(template.format(epoch + 1, opt.niter, ii, num_iter_epoch, g_loss_fake.item(), errD.item(),
-                                      errEG.item(), mse_iter))
+                template = '[Epoch:{:>2d}/{:<2d}] {:0>5d}/{:0>5d}, d_loss_fake={:5.2e} d_loss_real={:5.2e} errD={' \
+                           ':5.2e} errG={: 5.2e} '
+                print(template.format(epoch + 1, opt.niter, ii, num_iter_epoch, d_loss_fake.item(), d_loss_real.item(), errD.item(),
+                                      errG.item()))
 
-                # writer.add_scalar('Derain Loss Iter', mse_iter, step)
+
                 writer.add_scalar('Dloss', errD.item(), step)
-                writer.add_scalar('EGloss', errEG.item(), step)
-                # writer.add_scalar('drloss', d_loss_real.item(), step)
-                # writer.add_scalar('dfloss', d_loss_fake.item(), step)
-                # writer.add_scalar('gploss', opt.lambda_gp * d_loss_gp.item(), step)
-                # writer.add_scalar('gfloss', g_loss_fake.item(), step)
-                # writer.add_scalar('z_KLloss', kl_gauss_z.item(), step)
+                writer.add_scalar('Gloss', errG.item(), step)
+                writer.add_scalar('drloss', d_loss_real.item(), step)
+                writer.add_scalar('dfloss', d_loss_fake.item(), step)
+                writer.add_scalar('gploss', opt.lambda_gp * d_loss_gp.item(), step)
+                writer.add_scalar('gfloss', g_loss_fake.item(), step)
 
                 x2 = vutils.make_grid(gt, normalize=True, scale_each=True)
-                writer.add_image('GT', x2, step)
+                writer.add_image('Groud turth', x2, step)
                 x3 = vutils.make_grid(input, normalize=True, scale_each=True)
-                writer.add_image('Input', x3, step)
+                writer.add_image('Input image', x3, step)
                 x5 = vutils.make_grid(input_fake.data, normalize=True, scale_each=True)
-                writer.add_image('Input_Fake', x5, step)
+                writer.add_image('Generated image', x5, step)
                 x6 = vutils.make_grid(rain_make.data, normalize=True, scale_each=True)
-                writer.add_image('Rain_fake', x6, step)
+                writer.add_image('Rain Layer', x6, step)
             step += 1
-        mse_per_epoch /= (ii + 1)
-        lr_schedulerEG.step()
+        lr_schedulerG.step()
         lr_schedulerD.step()
         # save model
 
-        save_path_model = os.path.join(opt.model_dir, 'EG_state_' + str(epoch + 1) + '.pt')
-        torch.save(netEG.state_dict(), save_path_model)
+        save_path_model = os.path.join(opt.model_dir, 'G_state_' + str(epoch + 1) + '.pt')
+        torch.save(netG.state_dict(), save_path_model)
         save_path_model = os.path.join(opt.model_dir, 'D_state_' + str(epoch + 1) + '.pt')
         torch.save(netD.state_dict(), save_path_model)
         toc = time.time()
@@ -205,29 +196,29 @@ def train_model(netEG, netD, datasets, optimizerEG, lr_schedulerEG, optimizerD, 
 def main():
     # move the model to GPU
 
-    netEG = EGNet(opt.nc, opt.nz, opt.nef).cuda()
+    netG = GNet(opt.nc, opt.nz, opt.nef).cuda()
     netD = Discriminator(batch_size=opt.batchSize, image_size=opt.patchSize, conv_dim=opt.ndf).cuda()
     # optimizer
 
-    optimizerEG = optim.Adam(netEG.parameters(), lr=opt.lrEG)
+    optimizerG = optim.Adam(netG.parameters(), lr=opt.lrG)
     optimizerD = optim.Adam(netD.parameters(), lr=opt.lrD)
     # scheduler
-    schedulerEG = optim.lr_scheduler.MultiStepLR(optimizerEG, opt.milestone, gamma=0.5)
+    schedulerG = optim.lr_scheduler.MultiStepLR(optimizerG, opt.milestone, gamma=0.5)
     schedulerD = optim.lr_scheduler.MultiStepLR(optimizerD, opt.milestone, gamma=0.5)
     # continue to train from opt.resume
     for _ in range(opt.resume):
-        schedulerEG.step()
+        schedulerG.step()
         schedulerD.step()
 
     if opt.resume:  # from opt.resume continue to train, opt.resume=0 from scratch
-        netEG.load_state_dict(torch.load(os.path.join(opt.model_dir, 'EG_state_' + str(opt.resume) + '.pt')))
+        netG.load_state_dict(torch.load(os.path.join(opt.model_dir, 'G_state_' + str(opt.resume) + '.pt')))
         netD.load_state_dict(torch.load(os.path.join(opt.model_dir, 'D_state_' + str(opt.resume) + '.pt')))
     else:
-        netEG.apply(weights_init)
+        netG.apply(weights_init)
     # training data
     train_dataset = TrainDataset(opt.data_path, opt.gt_path, opt.patchSize, opt.batchSize * 3000)
     # train model
-    train_model(netEG, netD, train_dataset, optimizerEG, schedulerEG, optimizerD, schedulerD)
+    train_model(netG, netD, train_dataset, optimizerG, schedulerG, optimizerD, schedulerD)
 
 
 if __name__ == '__main__':

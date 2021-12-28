@@ -18,8 +18,8 @@ parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 # parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to netEG for z--rain display")
 # parser.add_argument('--save_fake', default='./disentanglement_results/rain100L/', help='folder to fake rain streaks')
-parser.add_argument('--netEG', default='./syn100lmodels_new/EG_state_300.pt', help="path to netEG for z--rain display")
-parser.add_argument('--save_fake', default='./disentanglement_results_new/rain100L/', help='folder to fake rain streaks')
+parser.add_argument('--netEG', default='./syn100lmodels_0004-0001/EG_state_300.pt', help="path to netEG for z--rain display")
+parser.add_argument('--save_fake', default='./disentanglement_results_0004-0001/rain100L/', help='folder to fake rain streaks')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -40,15 +40,32 @@ def main():
     print('Loading model ...\n')
     netEG = EGNet(opt.nc,opt.nz, opt.nef).cuda()
     netEG.load_state_dict(torch.load(opt.netEG))
-    interpolation = torch.arange(-100, 100, 10)
+    interpolation = torch.arange(-3, 3, 0.5)
     n = len(interpolation)
     img_size = 64
     figure_big = np.zeros((img_size * opt.nz, img_size * n, 3))
-    multi_seed = [10, 15, 20, 25, 30, 35, 40, 45, 50]
+    multi_seed = np.arange(0,1000,100)
+    # for seed in multi_seed:
+    #     print(seed)
+    #     random.seed(seed)
+    #     torch.manual_seed(seed)
+    #     random_z = torch.normal(0, 2, size=(1, opt.nz))
+    #     random_z = random_z.cuda()
+    #     with torch.no_grad():  #
+    #         out = netEG.sample(random_z)
+    #         out = torch.clamp(out, 0., 1.)
+    #     if opt.use_gpu:
+    #         save_out = np.uint8(255 * out.data.cpu().numpy().squeeze())  # back to cpu
+    #     else:
+    #         save_out = np.uint8(255 * out.data.numpy().squeeze())
+    #     save_out = save_out.transpose(1, 2, 0)
+    #     plt.imshow(save_out/255)
+    #     plt.show()
+
     for seed in multi_seed:
         random.seed(seed)
         torch.manual_seed(seed)
-        random_z = torch.randn(1, opt.nz)
+        random_z = torch.normal(0, 2, size=(1, opt.nz))
         ori_z = random_z.clone()
         out_seed = opt.save_fake +'./seed' + str(seed)  # save the disentanglement results with different seed
         try:
