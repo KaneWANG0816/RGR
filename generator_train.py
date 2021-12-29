@@ -18,6 +18,7 @@ from torch.autograd import Variable
 import torchvision.utils as vutils
 from extraNet import GNet  # GNet: RNet+G
 from discriminator import Discriminator  # Discriminator: D
+from discriminator_li import DiscriminatorLi
 from torch.utils.data import DataLoader
 from derainDataset import TrainDataset
 import numpy as np
@@ -39,7 +40,7 @@ parser.add_argument('--nz', type=int, default=128, help='size of the latent z ve
 parser.add_argument('--nef', type=int, default=32, help='channel setting for GNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
 
-parser.add_argument('--niter', type=int, default=500, help='the total number of training epochs')
+parser.add_argument('--niter', type=int, default=300, help='the total number of training epochs')
 parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
 parser.add_argument("--milestone", type=int, default=[300, 400, 450, 475, 490, 500], help="When to decay learning rate")
@@ -51,8 +52,8 @@ parser.add_argument('--eps2', type=float, default=1e-6, help='prior variance for
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 
-parser.add_argument('--log_dir', default='./syn100llogs_0004-0001/', help='tensorboard logs')
-parser.add_argument('--model_dir', default='./syn100lmodels_0004-0001/', help='saving model')
+parser.add_argument('--log_dir', default='./syn100llogs_0004-0001_gt/', help='tensorboard logs')
+parser.add_argument('--model_dir', default='./syn100lmodels_0004-0001_gt/', help='saving model')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -115,7 +116,7 @@ def train_model(netG, netD, datasets, optimizerG, lr_schedulerG, optimizerD, lr_
             d_loss_real = - torch.mean(d_out_real)
             # train with fake
 
-            rain_make, mu_z, logvar_z, _ = netG(input)
+            rain_make, mu_z, logvar_z, _ = netG(gt)
 
             input_fake = gt + rain_make
             d_out_fake, df1, df2 = netD(input_fake.detach())
