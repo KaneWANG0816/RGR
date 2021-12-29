@@ -43,7 +43,7 @@ parser.add_argument('--niter', type=int, default=500, help='the total number of 
 parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
 parser.add_argument("--milestone", type=int, default=[300, 400, 450, 475, 490, 500], help="When to decay learning rate")
-
+# [200, 250, 275, 300]
 parser.add_argument('--lrD', type=float, default=0.0004, help='learning rate for Disciminator')
 parser.add_argument('--lrG', type=float, default=0.0001, help='learning rate for RNet and Generator')
 parser.add_argument('--n_dis', type=int, default=5, help='discriminator critic iters')
