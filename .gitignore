@@ -20,3 +20,13 @@
 /syn100lmodels_0004-0002/
 /interpolation_results_0004-0001/
 /disentanglement_results_0004-0001/
+/syn100llogs_0004-0001_gt/
+/syn100lmodels_0004-0001_gt/
+/syn100llogs_0004-0001_gt_li/
+/rain100L/
+/test/
+/test.py
+/syn100lmodels_0004-0001_gt_fix/
+/syn100lmodels_0004-0001_gt_gnew/
+/syn100llogs_0004-0001_gt_fix/
+/syn100llogs_0004-0001_gt_gnew/
