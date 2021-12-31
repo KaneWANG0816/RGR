@@ -10,7 +10,6 @@ import torch.optim as optim
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-from prenet import PReNet
 
 
 def reparameterization(mu, logvar):

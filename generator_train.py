@@ -12,8 +12,8 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
 import torchvision.utils as vutils
-from extraNet import GNet
-from discriminator import Discriminator  # Discriminator: D
+from AAE import GNet
+from Critic import Discriminator  # Discriminator: D
 from torch.utils.data import DataLoader
 from derainDataset import TrainDataset
 import numpy as np
@@ -35,8 +35,8 @@ parser.add_argument('--nz', type=int, default=128, help='size of the latent z ve
 parser.add_argument('--nef', type=int, default=32, help='channel setting for GNet')
 parser.add_argument('--ndf', type=int, default=64, help='channel setting for D')
 
-parser.add_argument('--niter', type=int, default=200, help='the total number of training epochs')
-parser.add_argument('--resume', type=int, default=46, help='continue to train from resume')
+parser.add_argument('--niter', type=int, default=150, help='the total number of training epochs')
+parser.add_argument('--resume', type=int, default=0, help='continue to train from resume')
 parser.add_argument('--lambda_gp', type=float, default=10, help='penalty coefficient for wgan-gp')
 parser.add_argument("--milestone", type=int, default=[200, 250, 275, 300], help="When to decay learning rate")
 
@@ -46,8 +46,8 @@ parser.add_argument('--n_dis', type=int, default=5, help='discriminator critic i
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 
-parser.add_argument('--log_dir', default='./syn100llogs_0004-0001_gt_fix/', help='tensorboard logs')
-parser.add_argument('--model_dir', default='./syn100lmodels_0004-0001_gt_fix/', help='saving model')
+parser.add_argument('--log_dir', default='./syn100llogs_0004-0001_gt_fix_gray/', help='tensorboard logs')
+parser.add_argument('--model_dir', default='./syn100lmodels_0004-0001_gt_fix_gray/', help='saving model')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 
@@ -108,6 +108,10 @@ def train_model(netG, netD, datasets, optimizerG, lr_schedulerG, optimizerD, lr_
 
             # train with fake
             rain_make, mu_z, logvar_z, _ = netG(gt)
+
+            # convert
+            rain_make_avg = torch.mean(rain_make, 1)
+            rain_make = rain_make_avg.unsqueeze(dim=1).expand_as(rain_make)
 
             input_fake = gt + rain_make
             d_out_fake, df1, df2 = netD(input_fake.detach())

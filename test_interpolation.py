@@ -8,7 +8,7 @@ import glob
 import numpy as np
 import torch
 from torch.autograd import Variable
-from extraNet import EGNet  # EGNet: RNet+G
+from AAE import GNet  # GNet: RNet+G
 import matplotlib.pyplot as plt
 import random
 import scipy.io as sio
@@ -24,22 +24,25 @@ parser.add_argument('--nc', type=int, default=3, help='size of the RGB image')
 parser.add_argument('--patch_size', type=int, default=64, help='the height / width of the input image to network')
 parser.add_argument('--nz', type=int, default=128, help='size of the latent z vector')
 parser.add_argument('--stage', type=int, default=6, help='the stage number of PReNet')
-parser.add_argument('--nef', type=int, default=32, help='channel setting for EGNet')
+parser.add_argument('--nef', type=int, default=32, help='channel setting for GNet')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-# parser.add_argument('--netEG', default='./syn100lmodels/EG_state_200.pt', help="path to trained generator")
+# parser.add_argument('--netG', default='./syn100lmodels/G_state_200.pt', help="path to trained generator")
 # parser.add_argument('--save_patch', default='./interpolation_results/test_data/rain100L/crop_patch/',
 #                     help='folder to patchs by randonmly cropping the test-data')
 # parser.add_argument('--save_inputfake', default='./interpolation_results/generated_data/rain100L/input_fake',
 #                     help='folder to generated rainy images')
 # parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
 #                     help='folder to generated rain layer')
-parser.add_argument('--netEG', default='./syn100lmodels_0004-0001/EG_state_150.pt', help="path to trained generator")
-parser.add_argument('--save_patch', default='./interpolation_results_0004-0001/test_data/rain100L/crop_patch/',
+parser.add_argument('--netG', default='./syn100lmodels_0004-0001_gt_fix/G_state_97.pt', help="path to trained "
+                                                                                              "generator")
+parser.add_argument('--save_patch', default='./interpolation_results_0004-0001_gt_fix/test_data/rain100L/crop_patch/',
                     help='folder to patchs by randonmly cropping the test-data')
-parser.add_argument('--save_inputfake', default='./interpolation_results_0004-0001/generated_data/rain100L/input_fake',
+parser.add_argument('--save_inputfake', default='./interpolation_results_0004-0001_gt_fix/generated_data/rain100L'
+                                                '/input_fake',
                     help='folder to generated rainy images')
-parser.add_argument('--save_rainfake', default='./interpolation_results_0004-0001/generated_data/rain100L/rain_fake',
+parser.add_argument('--save_rainfake', default='./interpolation_results_0004-0001_gt_fix/generated_data/rain100L'
+                                               '/rain_fake',
                     help='folder to generated rain layer')
 opt = parser.parse_args()
 if opt.use_gpu:
@@ -80,9 +83,9 @@ def crop(img):
 def main():
     # Build model
     print('Loading model ...\n')
-    netEG = EGNet(opt.nc, opt.nz, opt.nef).cuda()
-    netEG.load_state_dict(torch.load(opt.netEG))
-    netEG.eval()
+    netG = GNet(opt.nc, opt.nz, opt.nef).cuda()
+    netG.load_state_dict(torch.load(opt.netG))
+    netG.eval()
     z_list = []
     B_list = []
     for img_name in os.listdir(opt.data_path):
@@ -126,8 +129,31 @@ def main():
             with torch.no_grad():  #
                 if opt.use_gpu:
                     torch.cuda.synchronize()
-                _, _, _, z = netEG(O)  # z: 1*nz
+                _, _, _, z = netG(O)  # z: 1*nz
+                _, _, _, z_ = netG(B)
                 z_list.append(z)
+                z_list.append(z_)
+                # show rain make with O and B
+                # rain_fake = netG.sample(z)
+                # rain_fake_ = netG.sample(z_)
+                # rain_fake_max = torch.max(rain_fake, 1)[0]
+                # rain_fake = rain_fake_max.unsqueeze(dim=1).expand_as(rain_fake)
+                # rain_fake_max_ = torch.max(rain_fake_, 1)[0]
+                # rain_fake_ = rain_fake_max_.unsqueeze(dim=1).expand_as(rain_fake_)
+                #
+                # rain_fake = torch.clamp(rain_fake, 0, 1)
+                # rain_fake = np.uint8(255 * rain_fake.data.cpu().numpy().squeeze()).transpose(1, 2, 0)
+                # rain_fake = exposure.adjust_gamma(rain_fake, 0.7)
+                # rain_fake_ = torch.clamp(rain_fake_, 0, 1)
+                # rain_fake_ = np.uint8(255 * rain_fake_.data.cpu().numpy().squeeze()).transpose(1, 2, 0)
+                # rain_fake_ = exposure.adjust_gamma(rain_fake_, 0.7)
+                # plt.imshow(rain_fake)
+                # plt.title('rain')
+                # plt.show()
+                # plt.imshow(rain_fake_)
+                # plt.title('gt')
+                # plt.show()
+
                 # Show Z distribution
                 # plt.hist(z.cpu().squeeze().numpy(), density=True, bins=25)
                 # plt.show()
@@ -135,10 +161,9 @@ def main():
         z_mix = (lambda_weight * z_list[0] + (1 - lambda_weight) * z_list[1]) / (
             np.sqrt(lambda_weight ** 2 + (1 - lambda_weight) ** 2))
         z_list.append(z_mix)
-        rain_fake = netEG.sample(z_mix)
+        rain_fake = netG.sample(z_mix)
         rain_fake_max = torch.max(rain_fake, 1)[0]
         rain_fake = rain_fake_max.unsqueeze(dim=1).expand_as(rain_fake)  # gray rain layer
-
         # generate fake rainy images by adding fake rain layer to different background images
         O1_fake = B_list[0] + rain_fake
         O2_fake = B_list[1] + rain_fake

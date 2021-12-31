@@ -7,7 +7,7 @@ import argparse
 
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
-from extraNet import GNet
+from AAE import GNet
 import time
 import numpy as np
 
