@@ -1,4 +1,3 @@
-# https://github.com/heykeetae/Self-Attention-GAN
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -25,10 +24,10 @@ class Self_Attn(nn.Module):
     def forward(self, x):
         """
             inputs :
-                x : input feature maps( B X C X W X H)
+                x : input feature maps( B x C x W x H)
             returns :
-                out : self attention value + input feature 
-                attention: B X N X N (N is Width*Height)
+                out : self attention value + input feature
+                attention: B x N x N (N is Width*Height)
         """
         m_batchsize, C, width, height = x.size()
         proj_query = self.query_conv(x).view(m_batchsize, -1, width * height).permute(0, 2, 1)  # B X CX(N)
@@ -53,6 +52,7 @@ class Discriminator(nn.Module):
         layer1 = []
         layer2 = []
         layer3 = []
+        layer4 = []
         last = []
 
         layer1.append(SpectralNorm(nn.Conv2d(3, conv_dim, 4, 2, 1)))
@@ -68,12 +68,11 @@ class Discriminator(nn.Module):
         layer3.append(nn.LeakyReLU(0.1))
         curr_dim = curr_dim * 2
 
-        if self.imsize == 64:
-            layer4 = []
-            layer4.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
-            layer4.append(nn.LeakyReLU(0.1))
-            self.l4 = nn.Sequential(*layer4)
-            curr_dim = curr_dim * 2
+        layer4.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer4.append(nn.LeakyReLU(0.1))
+        self.l4 = nn.Sequential(*layer4)
+        curr_dim = curr_dim * 2
+
         self.l1 = nn.Sequential(*layer1)
         self.l2 = nn.Sequential(*layer2)
         self.l3 = nn.Sequential(*layer3)

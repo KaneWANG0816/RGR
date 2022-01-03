@@ -6,7 +6,7 @@ import argparse
 import glob
 import numpy as np
 import torch
-from AAE import GNet
+from Generator import Generator
 import matplotlib.pyplot as plt
 import random
 
@@ -19,9 +19,9 @@ parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 # parser.add_argument('--netG', default='./syn100lmodels/G_state_200.pt', help="path to netG for z--rain display")
 # parser.add_argument('--save_fake', default='./disentanglement_results/rain100L/', help='folder to fake rain streaks')
-parser.add_argument('--netG', default='./syn100lmodels_0004-0001_gt_fix/G_state_97.pt',
+parser.add_argument('--netG', default='./model/syn100lmodels_BN/G_state_100.pt',
                     help="path to netG for z--rain display")
-parser.add_argument('--save_fake', default='./disentanglement_results_0004-0001_gt_fix/rain100L/',
+parser.add_argument('--save_fake', default='./disentanglement_results_BN/rain100L/',
                     help='folder to fake rain streaks')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
@@ -44,9 +44,9 @@ def is_image(img_name):
 def main():
     # Build model
     print('Loading model ...\n')
-    netG = GNet(opt.nc, opt.nz, opt.nef).cuda()
+    netG = Generator(opt.nc, opt.nz, opt.nef,"BN").cuda()
     netG.load_state_dict(torch.load(opt.netG))
-    interpolation = torch.arange(-3, 3, 0.5)
+    interpolation = torch.arange(-3, 3, 1)
     n = len(interpolation)
     img_size = 64
     figure_big = np.zeros((img_size * opt.nz, img_size * n, 3))
@@ -71,7 +71,7 @@ def main():
     for seed in multi_seed:
         random.seed(seed)
         torch.manual_seed(seed)
-        random_z = torch.normal(0, 2, size=(1, opt.nz))
+        random_z = torch.normal(0, 1, size=(1, opt.nz))
         ori_z = random_z.clone()
         out_seed = opt.save_fake + './seed' + str(seed)  # save the disentanglement results with different seed
         try:
@@ -82,10 +82,10 @@ def main():
             count = 0
             figure = np.ones((img_size, img_size * n + 3 * (n - 1), 3)) * 255
             for val in interpolation:
-                # random_z[:, d] = val
+                random_z[:, d] = val
                 random_z = random_z.cuda()
                 with torch.no_grad():  #
-                    out = netG.sample(random_z)
+                    out = netG(random_z)
                     out = torch.clamp(out, 0., 1.)
                 if opt.use_gpu:
                     save_out = np.uint8(255 * out.data.cpu().numpy().squeeze())  # back to cpu

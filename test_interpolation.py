@@ -8,7 +8,8 @@ import glob
 import numpy as np
 import torch
 from torch.autograd import Variable
-from AAE import GNet  # GNet: RNet+G
+from AAE import Generator  # Generator: RNet+G
+from Generator import Generator
 import matplotlib.pyplot as plt
 import random
 import scipy.io as sio
@@ -24,7 +25,7 @@ parser.add_argument('--nc', type=int, default=3, help='size of the RGB image')
 parser.add_argument('--patch_size', type=int, default=64, help='the height / width of the input image to network')
 parser.add_argument('--nz', type=int, default=128, help='size of the latent z vector')
 parser.add_argument('--stage', type=int, default=6, help='the stage number of PReNet')
-parser.add_argument('--nef', type=int, default=32, help='channel setting for GNet')
+parser.add_argument('--nef', type=int, default=32, help='channel setting for Generator')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 # parser.add_argument('--netG', default='./syn100lmodels/G_state_200.pt', help="path to trained generator")
@@ -83,7 +84,7 @@ def crop(img):
 def main():
     # Build model
     print('Loading model ...\n')
-    netG = GNet(opt.nc, opt.nz, opt.nef).cuda()
+    netG = Generator(opt.nc, opt.nz, opt.nef,"BN").cuda()
     netG.load_state_dict(torch.load(opt.netG))
     netG.eval()
     z_list = []
@@ -129,10 +130,11 @@ def main():
             with torch.no_grad():  #
                 if opt.use_gpu:
                     torch.cuda.synchronize()
-                _, _, _, z = netG(O)  # z: 1*nz
+                _ = netG(O)  # z: 1*nz
                 _, _, _, z_ = netG(B)
                 z_list.append(z)
                 z_list.append(z_)
+                print(z.shape)
                 # show rain make with O and B
                 # rain_fake = netG.sample(z)
                 # rain_fake_ = netG.sample(z_)
