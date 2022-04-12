@@ -11,7 +11,6 @@ from PReNet import PReNet
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser(description="Model_Test")
-parser.add_argument("--nl", type=int, default=17, help="Number of layers")
 parser.add_argument("--modelDir", type=str, default="./log_derain", help='path of model')
 parser.add_argument("--rainDir", type=str, default='./out/test/rain_', help='path of rain')
 parser.add_argument("--gtDir", type=str, default='./out/test/norain', help='path of ground truth')
