@@ -1,11 +1,9 @@
-# After finishing the joint training, testing the derain module BNet
-from random import randint
 
+from random import randint
 import torch
 import cv2
 import os
 import argparse
-
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
 import time
@@ -18,7 +16,7 @@ parser.add_argument("--norain_path", type=str, default="./rain100L/test/small/no
 parser.add_argument("--out_path", type=str, default="./out/test", help='path to output images')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-parser.add_argument('--netG', default='./model/syn100lmodels_BN/G_state_100.pt', help="path to trained GNet")
+parser.add_argument('--netG', default='./Models/G_state_100.pt', help="path to trained GNet")
 parser.add_argument('--save_path', default='./rainy_results/rain100L/', help='folder to rainy images')
 parser.add_argument('--nc', type=int, default=3, help='Number of image channels')
 parser.add_argument('--nz', type=int, default=128, help='size of noise z')
