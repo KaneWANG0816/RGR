@@ -40,8 +40,8 @@ parser.add_argument('--n_dis', type=int, default=5, help='critic iterations')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 
-parser.add_argument('--log_dir', default='./log/SN_BN/', help='path of logs')
-parser.add_argument('--model_dir', default='./model/syn100lmodels_SN_BN/', help='path of model')
+parser.add_argument('--log_dir', default='./log/BN/', help='path of logs')
+parser.add_argument('--model_dir', default='./model/syn100lmodels_BN/', help='path of model')
 parser.add_argument('--manualSeed', type=int, help='seed')
 opt = parser.parse_args()
 
@@ -177,19 +177,6 @@ def main(norm):
     schedulerG = optim.lr_scheduler.MultiStepLR(optimizerG, opt.stage, gamma=0.5)
     schedulerD = optim.lr_scheduler.MultiStepLR(optimizerD, opt.stage, gamma=0.5)
 
-    # continue to train from opt.resume
-    if norm == 'Nan':
-        opt.resume = 0
-        opt.model_dir = './model/syn100lmodels/'
-    elif norm == 'SN':
-        opt.resume = 0
-        opt.model_dir = './model/syn100lmodels_SN/'
-    elif norm == 'BN':
-        opt.resume = 0
-        opt.model_dir = './model/syn100lmodels_BN/'
-    else:
-        opt.resume = 0
-        opt.model_dir = './model/syn100lmodels_SN_BN/'
     for _ in range(opt.resume):
         schedulerG.step()
         schedulerD.step()
@@ -206,6 +193,5 @@ def main(norm):
 
 
 if __name__ == '__main__':
-    main("BN_SN")
     main("BN")
-    main("Nan")
+
