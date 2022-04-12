@@ -33,7 +33,8 @@ python test_PReNet.py
 ### Or follow complete flow
 1. [generateDataset.py](generateDataset.py) for generating [training](out/train) and [test](out/test) datasets for PReNet, from [test dataset of Rain100L](rain100L/test)
 ```bash
-python generateDataset.py
+python generateDataset.py --out_path ./out/train --num 500
+python generateDataset.py --out_path ./out/test --num 100
 ```
 2. [PReNet](PReNet.py) trains with pairs of real Rain100L([rain](out/train/rain), [norain](out/train/norain))
 ```bash
