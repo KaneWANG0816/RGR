@@ -16,7 +16,6 @@ parser.add_argument("--out_path", type=str, default="./out/test", help='path to 
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
 parser.add_argument('--netG', default='./Models/G_state_100.pt', help="path to trained GNet")
-parser.add_argument('--save_path', default='./rainy_results/rain100L/', help='folder to rainy images')
 parser.add_argument('--nc', type=int, default=3, help='Number of image channels')
 parser.add_argument('--nz', type=int, default=128, help='size of noise z')
 parser.add_argument('--nef', type=int, default=32, help='channel for Generator')
@@ -26,10 +25,6 @@ opt = parser.parse_args()
 
 if opt.use_gpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
-try:
-    os.makedirs(opt.save_path)
-except OSError:
-    pass
 
 
 def transform(img):
