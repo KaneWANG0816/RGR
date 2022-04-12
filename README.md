@@ -38,7 +38,7 @@ python generateDataset.py --out_path ./out/test --num 100
 ```
 2. [PReNet](PReNet.py) trains with pairs of real Rain100L([rain](out/train/rain), [norain](out/train/norain))
 ```bash
-python PReNet.py
+python train_PReNet.py
 ```
 4. Execute [test_PReNet.py](test_PReNet.py) to compare Real([rain](out/test/rain), [norain](out/test/norain)) and synthesised([rain_](out/test/rain_), [norain](out/test/norain))
 ```bash
