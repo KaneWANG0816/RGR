@@ -1,6 +1,3 @@
-# "
-# This is the latent space  disentanglement experiment. Taking the generator trained on rain100L as example
-# "
 import os
 import argparse
 import glob

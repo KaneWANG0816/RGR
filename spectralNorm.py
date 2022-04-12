@@ -1,6 +1,4 @@
 import torch
-from torch.optim.optimizer import Optimizer, required
-
 from torch.autograd import Variable
 import torch.nn.functional as F
 from torch import nn

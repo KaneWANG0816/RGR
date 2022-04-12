@@ -1,6 +1,3 @@
-# "
-# This is the interpolation experiment. Taking rain100L as example
-# "
 import cv2
 import os
 import argparse
@@ -27,13 +24,6 @@ parser.add_argument('--stage', type=int, default=6, help='the stage number of PR
 parser.add_argument('--nef', type=int, default=32, help='channel setting for Generator')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
-# parser.add_argument('--netG', default='./syn100lmodels/G_state_200.pt', help="path to trained generator")
-# parser.add_argument('--save_patch', default='./interpolation_results/test_data/rain100L/crop_patch/',
-#                     help='folder to patchs by randonmly cropping the test-data')
-# parser.add_argument('--save_inputfake', default='./interpolation_results/generated_data/rain100L/input_fake',
-#                     help='folder to generated rainy images')
-# parser.add_argument('--save_rainfake', default='./interpolation_results/generated_data/rain100L/rain_fake',
-#                     help='folder to generated rain layer')
 parser.add_argument('--netG', default='./syn100lmodels_0004-0001_gt_fix/G_state_97.pt', help="path to trained "
                                                                                               "generator")
 parser.add_argument('--save_patch', default='./interpolation_results_0004-0001_gt_fix/test_data/rain100L/crop_patch/',

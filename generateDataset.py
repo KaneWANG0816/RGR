@@ -1,4 +1,3 @@
-
 from random import randint
 import torch
 import cv2
