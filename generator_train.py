@@ -179,16 +179,16 @@ def main(norm):
 
     # continue to train from opt.resume
     if norm == 'Nan':
-        opt.resume = 64
+        opt.resume = 0
         opt.model_dir = './model/syn100lmodels/'
     elif norm == 'SN':
         opt.resume = 0
         opt.model_dir = './model/syn100lmodels_SN/'
     elif norm == 'BN':
-        opt.resume = 37
+        opt.resume = 0
         opt.model_dir = './model/syn100lmodels_BN/'
     else:
-        opt.resume = 44
+        opt.resume = 0
         opt.model_dir = './model/syn100lmodels_SN_BN/'
     for _ in range(opt.resume):
         schedulerG.step()

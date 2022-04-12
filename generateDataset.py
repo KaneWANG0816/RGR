@@ -8,10 +8,8 @@ import argparse
 
 from matplotlib import pyplot as plt
 from torch.autograd import Variable
-from AAE import GNet
 import time
 import numpy as np
-
 from Generator import Generator
 
 parser = argparse.ArgumentParser()

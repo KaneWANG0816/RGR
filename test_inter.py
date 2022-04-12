@@ -8,7 +8,6 @@ import glob
 import numpy as np
 import torch
 from torch.autograd import Variable
-from AAE import Generator  # Generator: RNet+G
 from Generator import Generator
 import matplotlib.pyplot as plt
 import random

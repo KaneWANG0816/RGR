@@ -13,9 +13,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 parser = argparse.ArgumentParser(description="Model_Test")
 parser.add_argument("--nl", type=int, default=17, help="Number of layers")
 parser.add_argument("--modelDir", type=str, default="./log_derain", help='path of model')
-parser.add_argument("--rainDir", type=str, default='./out/test/rain', help='path of rain')
+parser.add_argument("--rainDir", type=str, default='./out/test/rain_', help='path of rain')
 parser.add_argument("--gtDir", type=str, default='./out/test/norain', help='path of ground truth')
-parser.add_argument("--outDir", type=str, default='./out/derain', help='path of derain results')
+parser.add_argument("--outDir", type=str, default='./out/derain_', help='path of derain results')
 parser.add_argument("--recurrent_iter", type=int, default=6, help='number of recursive stages')
 parser.add_argument("--use_gpu", type=bool, default=True, help='use GPU or not')
 opt = parser.parse_args()
@@ -50,7 +50,7 @@ def main():
         psnr_test += psnr
         ssim_test += ssim
 
-        # cv2.imwrite(os.path.join(opt.outDir, f), out*255)
+        cv2.imwrite(os.path.join(opt.outDir, f), out*255)
         # print("%s PSNR %f SSIM %f" % (f, psnr, ssim))
     psnr_test /= len(os.listdir(opt.rainDir))
     ssim_test /= len(os.listdir(opt.rainDir))
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     epcho=list()
     ssim=list()
     psnr=list()
-    for i in range(1, l-1):
+    for i in range(10, 11):
         opt.modelDir = os.path.join(dir, 'net_epoch'+str(i)+'.pth')
         print(opt.modelDir)
         ssim_test,psnr_test = main()
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     epcho = np.array(epcho)
     ssim = np.array(ssim)
     psnr = np.array(psnr)
-    plt.plot(epcho, ssim, label="SSIM")
-    plt.show()
-    plt.plot(epcho, psnr, label="PSNR")
-    plt.show()
+    # plt.plot(epcho, ssim, label="SSIM")
+    # plt.show()
+    # plt.plot(epcho, psnr, label="PSNR")
+    # plt.show()
