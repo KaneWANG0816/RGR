@@ -43,6 +43,10 @@ python PReNet.py
 4. Execute [test_PReNet.py](test_PReNet.py) to compare Real([rain](out/test/rain), [norain](out/test/norain)) and synthesised([rain_](out/test/rain_), [norain](out/test/norain))
 ```bash
 python test_PReNet.py
+#Derain result on generated rainy images based clear Rain100L:
+#SSIM: 0.933699 PSNR:32.054134
+#Derain result on real Rain100L images:
+# SSIM: 0.949227 PSNR:33.904601
 ```
 4. Derain results are shown in [out/derain](out/derain)(rain100L) and [out/derain_](out/derain_)(synthesised rain)
 
